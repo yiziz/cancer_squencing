@@ -1,0 +1,15 @@
+# compiled python
+*.pyc
+
+# eclipse
+.metadata/*
+.metadata
+.project
+.pydevproject
+.classpath
+.settings
+.checkstyle
+.fbprefs
+
+# other
+build
