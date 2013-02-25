@@ -1,0 +1,17 @@
+Any code added, changed, edited, and deleted past the fb18105fd3ca8adef71db7b45b0e66f0c6f2d1da commit @ https://github.com/twoscoops/django-twoscoops-project.git is done by Derek Zhou
+
+All persons listed below are contributors to the  fb18105fd3ca8adef71db7b45b0e66f0c6f2d1da commit @ https://github.com/twoscoops/django-twoscoops-project.git
+
+----------------------
+
+Audrey Roy
+Daniel Greenfeld
+Juan Riaza
+Faris Chebib
+Garry Polley
+desimone
+Chris Hasenpflug
+Si Feng
+ducky427
+Benjamin Montgomery
+
