@@ -17,7 +17,7 @@ def diffIndexes(str1, str2, offset=0):
 
 def diffRatio(str1, str2, offset=0):
     indexes = diffIndexes(str1, str2, offset)
-    return [float(len(str1)-len(indexes))/len(str1), indexes]
+    return {"ratio": float(len(str1)-len(indexes))/len(str1), "indexes": indexes}
 
 def diffRatio2(str1, str2):
     return float(sum([a==b for a,b in zip(str1,str2)]))/len(str1)

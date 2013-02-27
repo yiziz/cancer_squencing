@@ -1,5 +1,61 @@
 import random
 
+
+def splitSeq(seq, length):
+    return [seq[i:i+length] for i in range(0, len(seq), length)]
+
+def createSplitDNADict(dna="", length=0):
+    dnaLength = len(dna)
+    if dnaLength < 1 or length is 0:
+        return {}
+    dnaDict = {}
+    tempLen = length
+    tempDna = ""
+    tempIndex = 0
+    for index in range(dnaLength):
+        if tempLen > 0:
+            tempLen -=1
+            tempDna += dna[index]
+        else:
+            dnaDict[tempIndex] = tempDna
+            
+            # reset
+            tempLen = length-1
+            tempDna = dna[index]
+            tempIndex = index
+        if index == dnaLength-1:
+            dnaDict[tempIndex] = tempDna
+            
+    return dnaDict
+
+def createGapDNADict(dnaDict={}, targetLength=0):
+    # dnaDict sequence lengths must be greater than targetLength
+    if dnaDict == {} or targetLength == 0:
+        return {}
+    gapDict = {}
+    indexes = dnaDict.keys()
+    indexes.sort()
+    tempDNA = ""
+    tempIndex = None
+    for index in indexes:
+        if index is indexes[0]:
+            first = dnaDict[index]
+            tempDNA = first[-(targetLength-1):]
+            tempIndex = index+len(first)-targetLength +1
+        elif index is indexes[-1]:
+            tempDNA += dnaDict[index][:targetLength-1]
+            gapDict[tempIndex] = tempDNA
+        else:
+            current = dnaDict[index]
+            
+            tempDNA += current[:targetLength-1]
+            gapDict[tempIndex] = tempDNA            
+            
+            tempDNA = current[-(targetLength-1):]
+            tempIndex = index+len(current)-targetLength +1
+    return gapDict
+
+
 def createRandomDNA(length=0, seed="gatc"):
     return "".join(random.choice(seed) for x in range(length))
 
@@ -82,6 +138,9 @@ class DNAFactory(object):
         return createReadList(self.getDNA(), length, num)
     
     def getDNA(self):
+        return self._dna
+    
+    def getSplitDNAList(self):
         return self._dna
     
     def getLength(self):
