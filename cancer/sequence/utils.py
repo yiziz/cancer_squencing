@@ -1,15 +1,18 @@
 
 def str2dict(s):
-    sDict = {}
+    #sDict = {}
+    sDict = {"a":0, "g":0, "t":0, "c":0} # special for dna
     for char in s:
         #try:
         #    sDict[char] +=1
         #except:
         #    sDict[char] =1
-        if char in sDict.keys():
-            sDict[char] +=1
-        else:
-            sDict[char] =1
+        #if char in sDict.keys():
+        #    sDict[char] +=1
+        #else:
+        #    sDict[char] =1
+        
+        sDict[char] +=1 # special for dna
     return sDict
 
 def maxSim(d1, d2, padding=0):

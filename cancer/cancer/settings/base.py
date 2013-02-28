@@ -187,10 +187,13 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS = (
     # Database migration helpers:
     'south',
+    'braces',
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
+    'dnaBank',
+    'sequence',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

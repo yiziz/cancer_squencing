@@ -23,13 +23,14 @@ var jsAlgo = function(seq, ratio) {
 		return this._seq;
 	}
 	
-	this.compareTarget = function(target, dna, indexStart){
+	this.matchTarget = function(target, indexStart){
 		target = typeof target == "undefined" ? "" : target;
 		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
         var targetLength = target.length;
         if (targetLength < 1) {
             return this;
         }
+        var dna = this.getSeq().getDNA();
         var tempDNA = dna.substr(indexStart);
         var indexOffset = indexStart;
         while (tempDNA.length >= targetLength){
@@ -49,18 +50,23 @@ var jsAlgo = function(seq, ratio) {
         return this;
 	}
     
-    this.compareTargetList = function(targetList, dna, indexStart) {
+    this.matchTargetList = function(targetList, dna, indexStart) {
     	indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
     	targetList = typeof targetList == "undefined" ? [] : targetList;
         if (targetList.length < 1){
             return this;
         }
         for (var i=0; i<targetList.length; i++){
-            var targetIndexes = this.compareTarget(targetList[i], dna, indexStart);
+            var targetIndexes = this.compareTarget(targetList[i], indexStart);
         }
         return this;
     }
     
+    this.boo = function(){
+    	alert("moo");
+    }
+    
+    /*
     this.matchTargetList = function(targetList){
     	targetList = typeof targetList == "undefined" ? [] : targetList;
     	var dnaDict = this.getSeq().getDNADict();
@@ -68,28 +74,46 @@ var jsAlgo = function(seq, ratio) {
     		this.compareTargetList(targetList, dnaDict[key], key);
     	}
     	return this;
-    }
+    }*/
     
     
 }
 
 
 
-var jsWildAlgo = function(){
-}
-
-jsWildAlgo.prototype = new jsAlgo()
-
-
-
-
-var Sequencer = function(dnaDict) {
+var jsWildAlgo = function(seq, ratio, wild){
 	
-	this._dnaDict = dnaDict; // in this case is an array of strings
+	this.orig_matchTarget = this.matchTarget;
+	this._wild = wild
+    this._skippedIndexes = []
+    this._dnaSegments = {}
+	
+	
+	
+}
+
+jsWildAlgo.prototype = new jsAlgo();
+jsWildAlgo.base = jsAlgo.prototype;
+
+
+
+
+var Sequencer = function(dna, startIndex) {
+	
+	this._dna = dna; // in this case is an array of strings
+	this._startIndex = startIndex;
 	var seq = this;
 	
-	this.getDNADict = function(){
-		return this._dnaDict;
+	this._setDNA = function(dna){
+		this._dna = dna;
+	}
+	
+	this.getDNA = function(){
+		return this._dna;
+	}
+	
+	this.getStartIndex = function(){
+		return this._startIndex;
 	}
 	
 	this.utils = {
@@ -107,7 +131,27 @@ var Sequencer = function(dnaDict) {
 			offset = typeof offset == "undefined" ? 0 : offset;
 			var indexes = this.diffIndexes(str1, str2, offset);
 			return {"ratio": (str1.length-indexes.length)/str1.length, "indexes": indexes}
-		}
+		},
+		str2dict: function(s){
+			sDict = {"a":0, "g":0, "t":0, "c":0};
+			for (var i=0; i<s.length; i++){
+				sDict[s[i]] +=1;
+			}
+			return sDict;
+		},
+		maxSim: function(targetString, dnaDict, padding){
+			// different inputs from python version
+			padding = typeof padding == "undefined" ? 0 : padding;
+			var letters = ["a", "g", "t", "c"];
+			var tLength = targetString.length;
+			var matches = 0;
+			tDict = seq.utils.str2dict(targetString);
+			for (var index in letters){
+				matches += Math.min(tDict[letters[index]], dnaDict[letters[index]]);
+			}
+			matches += padding;
+			return matches/tLength;
+		},
 	}
 	
 	
@@ -117,8 +161,13 @@ var Sequencer = function(dnaDict) {
 		algo.setSeq(this);
 	}
 	
+	this.getAlgo = function(){
+		return this._algo;
+	}
 	
-	this.setAlgo(new jsAlgo(this, 0.9));
+	
+	// this.setAlgo(new jsAlgo(this, 0.9));
+	this.setAlgo(new jsWildAlgo(this, 0.9, 7));
 	
 	
 	

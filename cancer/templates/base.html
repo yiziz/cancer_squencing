@@ -61,6 +61,11 @@
 
     </div> <!-- /container -->
 
+    <!-- cancer stuff -->
+    <button id="get">Get</button>
+    <button id="start">Start</button>
+
+
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -74,8 +79,22 @@
     {% block extra_js %}{% endblock extra_js %}
     
     <script type="text/javascript">
-        var seq = new Sequencer();
-        document.write(seq.utils.diffRatio("asdf", "easd"));
+    var seq;
+    var dnaPackage;
+    $(document).ready(function(){
+        dnaPackage = null;
+        seq = null;
+        $("#get").click(function(){
+            $.getJSON("/dnaBank/getSingleDNA", function(data) {
+                dnaPackage = data;
+            });
+        });
+        $("#start").click(function(){
+            //alert(dnaPackage);
+            seq = new Sequencer(dnaPackage["dna"], dnaPackage["startIndex"]);
+        });
+    });
     </script> 
+    
     </body>
 </html>
