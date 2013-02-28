@@ -132,7 +132,7 @@ class WildAlgo(BaseAlgo):
         while not finished:
             dnaDict = self.getDNADict(target, indexStart, padding)
             indexEnd = indexStart+targetLength+padding
-            if indexEnd >= len(self.getDNA())-1:
+            if indexEnd >= len(self.getDNA()):
                 indexEnd = None
                 finished = True
             if maxSim(targetDict, dnaDict, padding) >= 1:

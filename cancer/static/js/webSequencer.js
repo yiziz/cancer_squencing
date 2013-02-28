@@ -23,7 +23,7 @@ var jsAlgo = function(seq, ratio) {
 		return this._seq;
 	}
 	
-	this.matchTarget = function(target, indexStart){
+	this.matchTarget = function(target, indexStart, indexEnd){
 		target = typeof target == "undefined" ? "" : target;
 		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
         var targetLength = target.length;
@@ -31,7 +31,7 @@ var jsAlgo = function(seq, ratio) {
             return this;
         }
         var dna = this.getSeq().getDNA();
-        var tempDNA = dna.substr(indexStart);
+        var tempDNA = dna.substr(indexStart, indexEnd);
         var indexOffset = indexStart;
         while (tempDNA.length >= targetLength){
             var diff = this.getSeq().utils.diffRatio(target, tempDNA.substr(0, targetLength), indexOffset);
@@ -57,7 +57,7 @@ var jsAlgo = function(seq, ratio) {
             return this;
         }
         for (var i=0; i<targetList.length; i++){
-            var targetIndexes = this.compareTarget(targetList[i], indexStart);
+            var targetIndexes = this.matchTarget(targetList[i], indexStart);
         }
         return this;
     }
@@ -88,7 +88,63 @@ var jsWildAlgo = function(seq, ratio, wild){
     this._skippedIndexes = []
     this._dnaSegments = {}
 	
+	this.getDNASegments = function(){
+		return this._dnaSegments;
+	}
 	
+	this.getWild = function(){
+		return this._wild;
+	}
+	
+	this.getSkippedIndexes = function(){
+		return this._skippedIndexes;
+	}
+	
+	this.getDNADict = function(target, indexStart, padding){
+		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
+		padding = typeof padding == "undefined" ? 0 : padding;
+		var dnaDict = {};
+		if(typeof this.getDNASegments()[indexStart] != "undefined"){
+			dnaDict = this.getDNASegments()[indexStart];
+		} else {
+			var paddingStart = indexStart + padding;
+			var dnaLength = target.length - padding;
+			var dna = this.getSeq().getDNA().substr(paddingStart, dnaLength)
+			dnaDict = this.getSeq().utils.str2dict(dna);
+			this.getDNASegments()[indexStart] = dnaDict;
+		}
+		return dnaDict;
+	}
+	
+	this.matchTarget = function(target, indexStart, indexEnd){
+		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
+		var targetLength = target.length;
+		var targetDict = this.getSeq().utils.str2dict(target);
+		if(targetLength <1){
+			return this;
+		}
+		var mutateWild = (1-this.getCheckRatio())*targetLength;
+		var padding = parseInt(this.getWild()+mutateWild);
+		var finished = false;
+		while(!finished){
+			var dnaDict = this.getDNADict(target, indexStart, padding);
+			var indexEnd = indexStart+targetLength+padding;
+			if(indexEnd >= this.getSeq().getDNA().length){
+				indexEnd = this.getSeq().getDNA().length;
+				finished = true;
+			}
+			//console.log(indexStart);
+			if(this.getSeq().utils.maxSim(targetDict, dnaDict, padding) >= 1){
+				this.orig_matchTarget(target, indexStart, indexEnd);
+				
+			} else {
+				this.getSkippedIndexes().push(indexStart);
+			}
+			indexStart += padding;
+		}
+		return this;
+	
+	}
 	
 }
 
@@ -139,15 +195,15 @@ var Sequencer = function(dna, startIndex) {
 			}
 			return sDict;
 		},
-		maxSim: function(targetString, dnaDict, padding){
-			// different inputs from python version
+		maxSim: function(tDict, dnaDict, padding){
 			padding = typeof padding == "undefined" ? 0 : padding;
 			var letters = ["a", "g", "t", "c"];
-			var tLength = targetString.length;
+			var tLength = 0;
 			var matches = 0;
-			tDict = seq.utils.str2dict(targetString);
 			for (var index in letters){
-				matches += Math.min(tDict[letters[index]], dnaDict[letters[index]]);
+				var tLetter = tDict[letters[index]];
+				tLength += tLetter;
+				matches += Math.min(tLetter, dnaDict[letters[index]]);
 			}
 			matches += padding;
 			return matches/tLength;
