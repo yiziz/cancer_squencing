@@ -19,14 +19,23 @@ from dnaBank import utils
 from .algorithms import BaseAlgo, WildAlgo
 import time
 
-ref = utils.RefFactory(500)
-donor = utils.DonorFactory(ref, 10)
-cancer = utils.CancerFactory(donor, 5)
+
+refLen = 10000
+readLen = 15000
+donorM = 12
+cancerM = 4
+
+
+ref = utils.RefFactory(refLen)
+donor = utils.DonorFactory(ref, donorM)
+cancer = utils.CancerFactory(donor, cancerM)
+rList = donor.getReadList(30, readLen) + cancer.getReadList(30, readLen)
+instance = {"dna":ref.getDNA(), "readList":rList, "startIndex":0, 
+            "donorIndex": donor.getMutateIndexes(), "cancerIndex": cancer.getMutateIndexes()}
 
 base = BaseAlgo(ref.getDNA(), 0.9)
 wild = WildAlgo(ref.getDNA(), 0.9, 7)
 
-rList = donor.getReadList(30, 20000)
 
 def bob(tList):
     start = time.time()
@@ -37,4 +46,20 @@ def dod(tList):
     start = time.time()
     base.matchTargetList(tList)
     return time.time() -start
-# t = bob(rList[:1])
+
+t = bob(rList)
+t2 = dod(rList)
+
+print donor.getMutateIndexes()
+print cancer.getMutateIndexes()
+
+print t
+print len(wild.getSkippedIndexes())
+print wild.getFrequency()
+
+print "\n\n\n"
+
+print t2
+print base.getFrequency()
+
+

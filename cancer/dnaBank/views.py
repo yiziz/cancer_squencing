@@ -1,7 +1,6 @@
 # Create your views here.
 
 from django.views.generic import View
-from braces.views import JSONResponseMixin
 from django.http import HttpResponse
 
 from . import utils
@@ -16,18 +15,23 @@ def getAllDNA():
     pass
 
 def getSingleDNA(request):
-    ref = utils.RefFactory(500)
-    donor = utils.DonorFactory(ref, 10)
-    cancer = utils.CancerFactory(donor, 5)
-    rF = donor.getRead(30)
-    instance = {"dna":ref.getDNA(), "read":rF, "startIndex":0,}
+    refLen = 10000
+    readLen = 15000
+    donorM = 12
+    cancerM = 3
+    ref = utils.RefFactory(refLen)
+    donor = utils.DonorFactory(ref, donorM)
+    cancer = utils.CancerFactory(donor, cancerM)
+    rList = donor.getReadList(30, readLen) + cancer.getReadList(30, readLen)
+    instance = {"dna":ref.getDNA(), "readList":rList, "startIndex":0, 
+                "donorIndex": donor.getMutateIndexes(), "cancerIndex": cancer.getMutateIndexes()}
     return HttpResponse(json.dumps(instance), content_type="application/json")
 
-class foo(JSONResponseMixin, View):
-    
-    def get(self, request, *args, **kwargs):
-        instance = {"foo":"boo"}
-        return self.render_json_object_response(instance)
+#class foo(JSONResponseMixin, View):
+#    
+#    def get(self, request, *args, **kwargs):
+#        instance = {"foo":"boo"}
+#        return self.render_json_object_response(instance)
 
 
 

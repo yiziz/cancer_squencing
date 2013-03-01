@@ -23,7 +23,7 @@ var jsAlgo = function(seq, ratio) {
 		return this._seq;
 	}
 	
-	this.matchTarget = function(target, indexStart, indexEnd){
+	this.matchTarget = function(target, indexStart, dnaLength){
 		target = typeof target == "undefined" ? "" : target;
 		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
         var targetLength = target.length;
@@ -31,7 +31,7 @@ var jsAlgo = function(seq, ratio) {
             return this;
         }
         var dna = this.getSeq().getDNA();
-        var tempDNA = dna.substr(indexStart, indexEnd);
+        var tempDNA = dna.substr(indexStart, dnaLength);
         var indexOffset = indexStart;
         while (tempDNA.length >= targetLength){
             var diff = this.getSeq().utils.diffRatio(target, tempDNA.substr(0, targetLength), indexOffset);
@@ -62,6 +62,10 @@ var jsAlgo = function(seq, ratio) {
         return this;
     }
     
+    this.reset = function(){
+    	this._frequency = {};
+    }
+    
     this.boo = function(){
     	alert("moo");
     }
@@ -84,9 +88,99 @@ var jsAlgo = function(seq, ratio) {
 var jsWildAlgo = function(seq, ratio, wild){
 	
 	this.orig_matchTarget = this.matchTarget;
-	this._wild = wild
-    this._skippedIndexes = []
-    this._dnaSegments = {}
+	this.orig_reset = this.reset;
+	this._wild = wild;
+    this._skippedIndexes = [];
+    this._dnaSegments = {};
+	
+	this.getDNASegments = function(){
+		return this._dnaSegments;
+	}
+	
+	this.getWild = function(){
+		return this._wild;
+	}
+	
+	this.getSkippedIndexes = function(){
+		return this._skippedIndexes;
+	}
+	
+	this.getDNAList = function(target, indexStart, padding){
+		// !!!! Only works with padding == 10 and targetLength == 30
+		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
+		padding = typeof padding == "undefined" ? 0 : padding;
+		var dnaList = [];
+		if(typeof this.getDNASegments()[indexStart] != "undefined"){
+			dnaList = this.getDNASegments()[indexStart];
+		} else {
+			var str2dict = this.getSeq().utils.str2dict;
+			var paddingStart = indexStart + padding;
+			var dnaLength = target.length - padding;
+			var dna = this.getSeq().getDNA().substr(paddingStart, dnaLength)
+			//dnaDict = str2dict(dna);
+			tempDNA = this.getSeq().getDNA().substr(indexStart, target.length);
+            dnaList = [str2dict(tempDNA.substr(padding)),
+                           str2dict(tempDNA.substr(0,padding)+tempDNA.substr(padding*2)), 
+                           str2dict(tempDNA.substr(0, padding*2)),
+                        ];
+			this.getDNASegments()[indexStart] = dnaList;
+		}
+		return dnaList;
+	}
+	
+	this.matchTarget = function(target, indexStart, dnaLength){
+		// !!!! Only works with padding == 10 and targetLength == 30
+		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
+		var targetLength = target.length;
+		var targetDict = this.getSeq().utils.str2dict(target);
+		if(targetLength <1){
+			return this;
+		}
+		var mutateWild = (1-this.getCheckRatio())*targetLength;
+		var padding = parseInt(this.getWild()+mutateWild);
+		var finished = false;
+		var maxSim = this.getSeq().utils.maxSim;
+		while(!finished){
+			var dnaList = this.getDNAList(target, indexStart, padding);
+			var indexEnd = indexStart+targetLength+padding-1;
+			if(indexEnd >= this.getSeq().getDNA().length){
+				indexEnd = this.getSeq().getDNA().length;
+				finished = true;
+			}
+			//console.log(indexStart);
+			if(maxSim(targetDict, dnaList[0], padding) >= 1 || 
+					maxSim(targetDict, dnaList[1], padding) >= 1 || 
+					maxSim(targetDict, dnaList[2], padding) >= 1
+					){
+				this.orig_matchTarget(target, indexStart, indexEnd-indexStart);
+				
+			} else {
+				this.getSkippedIndexes().push(indexStart);
+			}
+			indexStart += padding;
+		}
+		return this;
+	
+	}
+	
+	this.reset = function(){
+		this._skippedIndexes = [];
+		this._dnaSegments = {};
+	}
+	
+}
+
+jsWildAlgo.prototype = new jsAlgo();
+jsWildAlgo.base = jsAlgo.prototype;
+
+
+var jsWAlgo = function(seq, ratio, wild){
+	
+	this.orig_matchTarget = this.matchTarget;
+	this.orig_reset = this.reset;
+	this._wild = wild;
+    this._skippedIndexes = [];
+    this._dnaSegments = {};
 	
 	this.getDNASegments = function(){
 		return this._dnaSegments;
@@ -116,7 +210,7 @@ var jsWildAlgo = function(seq, ratio, wild){
 		return dnaDict;
 	}
 	
-	this.matchTarget = function(target, indexStart, indexEnd){
+	this.matchTarget = function(target, indexStart, dnaLength){
 		indexStart = typeof indexStart == "undefined" ? 0 : indexStart;
 		var targetLength = target.length;
 		var targetDict = this.getSeq().utils.str2dict(target);
@@ -128,14 +222,14 @@ var jsWildAlgo = function(seq, ratio, wild){
 		var finished = false;
 		while(!finished){
 			var dnaDict = this.getDNADict(target, indexStart, padding);
-			var indexEnd = indexStart+targetLength+padding;
+			var indexEnd = indexStart+targetLength+padding-1;
 			if(indexEnd >= this.getSeq().getDNA().length){
 				indexEnd = this.getSeq().getDNA().length;
 				finished = true;
 			}
 			//console.log(indexStart);
 			if(this.getSeq().utils.maxSim(targetDict, dnaDict, padding) >= 1){
-				this.orig_matchTarget(target, indexStart, indexEnd);
+				this.orig_matchTarget(target, indexStart, indexEnd-indexStart);
 				
 			} else {
 				this.getSkippedIndexes().push(indexStart);
@@ -146,10 +240,15 @@ var jsWildAlgo = function(seq, ratio, wild){
 	
 	}
 	
+	this.reset = function(){
+		this._skippedIndexes = [];
+		this._dnaSegments = {};
+	}
+	
 }
 
-jsWildAlgo.prototype = new jsAlgo();
-jsWildAlgo.base = jsAlgo.prototype;
+jsWAlgo.prototype = new jsAlgo();
+jsWAlgo.base = jsAlgo.prototype;
 
 
 
@@ -224,8 +323,10 @@ var Sequencer = function(dna, startIndex) {
 	
 	// this.setAlgo(new jsAlgo(this, 0.9));
 	this.setAlgo(new jsWildAlgo(this, 0.9, 7));
-	
-	
-	
-	
+		
 }
+
+
+
+
+

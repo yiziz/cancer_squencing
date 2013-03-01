@@ -12,7 +12,7 @@ class BaseAlgo(object):
         return None
     
     
-    def matchTarget(self, target="", indexStart=0, indexEnd=None):
+    def matchTarget(self, target="", indexStart=0, indexEnd=None, foo=0):
         targetLength = len(target)
         #mutantIndexes = {}
         if targetLength < 1:
@@ -23,7 +23,9 @@ class BaseAlgo(object):
         while len(dna) >= targetLength:
             diff = diffRatio(target, dna[:targetLength], indexOffset)
             if diff["ratio"] >= self.getCheckRatio():
+                
                 for index in diff["indexes"]:
+                    # print str(index) + " | " + target + " | #" + dna[:targetLength] + " | @" + dna[:50] + " | " + str(indexStart)+"$"+str(indexOffset) + "$" + str(len(dna))
                     #if index in mutantIndexes.key():
                     #    mutantIndexes[index] +=1
                     #else:
@@ -41,13 +43,13 @@ class BaseAlgo(object):
         #return mutantIndexes
         return self
     
-    def matchTargetList(self, targetList, indexStart=0, indexEnd=None):
+    def matchTargetList(self, targetList, indexStart=0, indexEnd=None, foo=0):
         #mutantIndexes = {}
         if len(targetList) < 1:
             #return mutantIndexes
             return self
         for target in targetList:
-            targetIndexes = self.matchTarget(target, indexStart, indexEnd)
+            targetIndexes = self.matchTarget(target, indexStart, indexEnd, foo)
             #mutantIndexes = dict(mutantIndexes.items() + targetIndexes.items())
         #return mutantIndexes
         return self
@@ -105,23 +107,24 @@ class WildAlgo(BaseAlgo):
     
     
     def getDNADict(self, target="", indexStart=0, padding=0):
-        #if indexStart in self.getDNASegments().keys():
-        #    return self.getDNASegments()[indexStart]
-        ##paddingStart = indexStart + padding
-        ##paddingEnd = paddingStart + len(target) - padding
-        ##dnaDict = str2dict(self.getDNA()[paddingStart:paddingEnd])
-        #self.getDNASegments()[indexStart] = dnaDict
-        dnaDict = {}
+        ###!!!! Only works with padding == 10 and targetLength == 30
+
+        dnaList = []
         try:
-            dnaDict = self.getDNASegments()[indexStart]
+            dnaList = self.getDNASegments()[indexStart]
         except:
-            paddingStart = indexStart + padding
-            paddingEnd = paddingStart + len(target) - padding
-            dnaDict = str2dict(self.getDNA()[paddingStart:paddingEnd])
-            self.getDNASegments()[indexStart] = dnaDict
-        return dnaDict
+            #paddingStart = indexStart + padding
+            #paddingEnd = paddingStart + len(target) - padding
+            tempDNA = self.getDNA()[indexStart:indexStart+len(target)]
+            dnaList = [str2dict(tempDNA[padding:]),
+                           str2dict(tempDNA[:padding]+tempDNA[padding*2:]), 
+                           str2dict(tempDNA[:-padding]),
+                        ]
+            self.getDNASegments()[indexStart] = dnaList
+        return dnaList
     
-    def matchTarget(self, target="", indexStart=0, indexEnd=None):
+    def matchTarget(self, target="", indexStart=0, indexEnd=None, foo=1):
+        ###!!!! Only works with padding == 10 and targetLength == 30
         targetLength = len(target)
         targetDict = str2dict(target)
         if targetLength < 1:
@@ -130,12 +133,14 @@ class WildAlgo(BaseAlgo):
         padding = int(self.getWild()+mutateWild)
         finished = False
         while not finished:
-            dnaDict = self.getDNADict(target, indexStart, padding)
-            indexEnd = indexStart+targetLength+padding
+            dnaList = self.getDNADict(target, indexStart, padding)
+            indexEnd = indexStart+targetLength+padding-foo
             if indexEnd >= len(self.getDNA()):
                 indexEnd = None
                 finished = True
-            if maxSim(targetDict, dnaDict, padding) >= 1:
+            if maxSim(targetDict, dnaList[0], padding) >= 1 or \
+                maxSim(targetDict, dnaList[1], padding) >= 1 or \
+                maxSim(targetDict, dnaList[2], padding) >= 1:
                 super(WildAlgo, self).matchTarget(target, indexStart, indexEnd)
             else:
                 self.getSkippedIndexes().append(indexStart)

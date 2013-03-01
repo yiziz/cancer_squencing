@@ -62,39 +62,189 @@
     </div> <!-- /container -->
 
     <!-- cancer stuff -->
-    <button id="get">Get</button>
-    <button id="start">Start</button>
+    <button id="get">Get Server</button>
+    <button id="run">Run Worker</button>
+    <button id="second">Second</button>
+    <button id="third">third</button>
 
+    <div id="graph" style="width:540px;height:360px;margin-top:50px;margin-left:50px;"></div>
 
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.min.js"></script>
     <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 
     <!-- place project specific Javascript in this file -->
     <script src="{{ STATIC_URL }}js/project.js"></script>
     <script src="{{ STATIC_URL }}js/webSequencer.js"></script>
-
+    
+    <script src="{{ STATIC_URL }}js/jquery.flot.js"></script>
+    
+    
+    
+    
     {% block extra_js %}{% endblock extra_js %}
     
     <script type="text/javascript">
+        // js times
+        var baseline = {
+            label: "baseline",
+            data: [ [100, 0.026], [500, 0.742], [1000, 3.081], [10000, 342.317] ],
+            lines: {show: true},
+            points: {show: true}
+            }
+        var datajam ={
+        		label: "djam",
+                data: [ [100, 0.033], [500, 0.483], [1000, 2.035], [10000, 219.418] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        var datajb = {
+                label: "djellybeans",
+                data: [ [100, 0.047], [500, 0.793], [1000, 3.12], [10000, 334.992] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        // accuracy
+        var baseline = {
+            label: "baseline",
+            data: [ [100, .999], [500, .999], [1000, .999], [10000, .999] ],
+            lines: {show: true},
+            points: {show: true}
+            }
+        var datajam ={
+                label: "djam",
+                data: [ [100, 320/328*.999], [500, 430/442*.999], [1000, 938/940*.999], [10000, 1291/1296*.999] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        var datajb = {
+                label: "djellybeans",
+                data: [ [100, .999], [500, 440/442*.999], [1000, .999], [10000, 1293/1296*.999] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        
+        var plot = $.plot(
+                $("#graph"), 
+                [ 
+                   baseline,
+                   datajam,
+                   datajb, 
+                ], 
+                { 
+                }
+        );
+        plot.draw();
+        
+    </script>
+    
+    <script type="text/javascript">
     var seq;
+    var seq2;
     var dnaPackage;
+
+    var worker = new Worker('/static/js/seqWorker.js');
+
+
+    function sendDNA(dnaPackage){
+        worker.postMessage({"cmd": "processDNA", "dnaPackage": dnaPackage});
+    }
+
+    function runWorker(){
+        worker.postMessage({"cmd": "run"});
+        console.log("running worker");
+    }
+
+    function getFreq(){
+        worker.postMessage({"cmd": "sendFreq"});
+    }
+
+    
+    worker.addEventListener("message", function(e){
+        console.log(e.data);
+    }, false);
+
+
+    function third(){
+    	var start = new Date();
+        seq2.getAlgo().matchTargetList(dnaPackage["readList"]);
+        var time = (new Date() -start)/1000;
+        var algo = seq2.getAlgo();
+        var results = {
+            "_frequency": algo.getFrequency(),
+            "duration": time,
+            
+        }
+        console.log(results);
+    }
+
+    function second(){
+    	var start = new Date();
+        seq.getAlgo().matchTargetList(dnaPackage["readList"]);
+        var time = (new Date() -start)/1000;
+    	var algo = seq.getAlgo();
+        var results = {
+            "_frequency": algo.getFrequency(),
+            "_skippedIndexes": algo.getSkippedIndexes(),
+            "_dnaSegments": algo.getDNASegments(),
+            "duration": time,
+            
+        }
+        //datajam.data.push([2,5]);
+        //plot.setData([datajam, datajb]);
+        //plot.draw();
+        console.log(results);
+    }
+    
     $(document).ready(function(){
         dnaPackage = null;
         seq = null;
+        seq2 = null
         $("#get").click(function(){
             $.getJSON("/dnaBank/getSingleDNA", function(data) {
                 dnaPackage = data;
+                sendDNA(dnaPackage);
+                seq = new Sequencer(dnaPackage["dna"], dnaPackage["startIndex"]);
+                seq.setAlgo(new jsWAlgo(seq, 0.9, 7));
+
+                seq2 = new Sequencer(dnaPackage["dna"], dnaPackage["startIndex"]);
+                seq2.setAlgo(new jsAlgo(seq2, 0.9));
+                console.log("received data from server");
+                console.log(dnaPackage["donorIndex"]);
+                console.log(dnaPackage["cancerIndex"]);
             });
         });
-        $("#start").click(function(){
+        $("#run").click(function(){
             //alert(dnaPackage);
-            seq = new Sequencer(dnaPackage["dna"], dnaPackage["startIndex"]);
+            
+            runWorker();
+            
         });
+        $("#second").click(function(){
+            second();
+        });
+        $("#third").click(function(){
+            third();
+        });
+        
     });
+
+
+    
     </script> 
     
     </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
