@@ -106,6 +106,32 @@
                 lines: {show: true},
                 points: {show: true}
                 }
+        // python times
+        var basep = {
+        		label: "baseline",
+                data: [ [100, 0.5439], [500, 17.667], [1000, 74.1956], [2000, 299.1588] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        var datajbp = {
+                label: "djellybeans (python)",
+                data: [ [100, 0.5146], [500, 14.7578], [1000, 53.5189], [2000, 233.3994] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        // python accuracy
+        /*var basep = {
+                label: "baseline",
+                data: [ [100, .999], [500, .999], [1000, .999], [2000, .999] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        var datajbp = {
+                label: "djellybeans",
+                data: [ [100, 230/235*.999], [500, 487/487*.999], [1000, 937/937*.999], [2000, 1037/1051*.999] ],
+                lines: {show: true},
+                points: {show: true}
+                }*/
         // accuracy
         var baseline = {
             label: "baseline",
@@ -125,13 +151,34 @@
                 lines: {show: true},
                 points: {show: true}
                 }
+        var baseline = {
+            label: "baseline",
+            data: [ [100, 0.870071685], [500, 0.937337168], [1000, 0.827586207], [10000, 0.936461388] ],
+            lines: {show: true},
+            points: {show: true}
+            }
+        var datajam ={
+                label: "djam",
+                data: [ [100, 0.905913978], [500, 0.874674336], [1000, 0.853146853], [10000, 0.910801564] ],
+                lines: {show: true},
+                points: {show: true}
+                }
+        var datajb = {
+                label: "djellybeans",
+                data: [ [100, 0.870071685], [500, 0.864557604], [1000, 0.827586207], [10000, 0.931329423] ],
+                lines: {show: true},
+                points: {show: true}
+                }
         
         var plot = $.plot(
                 $("#graph"), 
                 [ 
                    baseline,
                    datajam,
-                   datajb, 
+                   datajb,
+
+                   //basep,
+                   //datajbp, 
                 ], 
                 { 
                 }

@@ -20,10 +20,10 @@ from .algorithms import BaseAlgo, WildAlgo
 import time
 
 
-refLen = 10000
-readLen = 15000
-donorM = 12
-cancerM = 4
+refLen = 100
+readLen = 150
+donorM = 2
+cancerM = 1
 
 
 ref = utils.RefFactory(refLen)

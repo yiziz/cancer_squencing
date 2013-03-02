@@ -15,10 +15,10 @@ def getAllDNA():
     pass
 
 def getSingleDNA(request):
-    refLen = 10000
-    readLen = 15000
-    donorM = 12
-    cancerM = 3
+    refLen = 1100
+    readLen = 1680
+    donorM = 9
+    cancerM = 4
     ref = utils.RefFactory(refLen)
     donor = utils.DonorFactory(ref, donorM)
     cancer = utils.CancerFactory(donor, cancerM)

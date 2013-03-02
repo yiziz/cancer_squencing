@@ -12,7 +12,7 @@ class BaseAlgo(object):
         return None
     
     
-    def matchTarget(self, target="", indexStart=0, indexEnd=None, foo=0):
+    def matchTarget(self, target="", indexStart=0, indexEnd=None, foo=1):
         targetLength = len(target)
         #mutantIndexes = {}
         if targetLength < 1:
@@ -43,7 +43,7 @@ class BaseAlgo(object):
         #return mutantIndexes
         return self
     
-    def matchTargetList(self, targetList, indexStart=0, indexEnd=None, foo=0):
+    def matchTargetList(self, targetList, indexStart=0, indexEnd=None, foo=1):
         #mutantIndexes = {}
         if len(targetList) < 1:
             #return mutantIndexes
